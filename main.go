@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	//"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	pgdatabase "github.com/vtdthang/goapi/drivers/pg"
 	"github.com/vtdthang/goapi/routers"
 )
 
@@ -25,18 +26,9 @@ func connectToPostgres() {
 		log.Fatal("Error loading env file")
 	}
 
-	psqlInfo := os.Getenv("PG_LOCAL_URL")
+	pgConnectionString := os.Getenv("PG_LOCAL_URL")
 
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
+	pgdatabase.NewDB(pgConnectionString)
 
 	fmt.Println("Successfully connected!")
 }
