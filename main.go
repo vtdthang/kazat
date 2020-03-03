@@ -1,7 +1,6 @@
 package main
 
 import (
-	//"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,26 +8,22 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	pgdatabase "github.com/vtdthang/goapi/drivers/pg"
+	pgdb "github.com/vtdthang/goapi/drivers/pg"
 	"github.com/vtdthang/goapi/routers"
 )
 
 func main() {
-	connectToPostgres()
-
-	router := routers.InitRoutes()
-	log.Fatal(http.ListenAndServe(":8081", router))
-}
-
-func connectToPostgres() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading env file")
 	}
 
 	pgConnectionString := os.Getenv("PG_LOCAL_URL")
+	db, err := pgdb.NewDB(pgConnectionString)
+	if err != nil {
+		fmt.Println("Cannot connect to Postgres!")
+	}
 
-	pgdatabase.NewDB(pgConnectionString)
-
-	fmt.Println("Successfully connected!")
+	router := routers.InitRoutes()
+	log.Fatal(http.ListenAndServe(":8081", router))
 }
