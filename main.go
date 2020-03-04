@@ -7,9 +7,12 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 	pgdb "github.com/vtdthang/goapi/drivers/pg"
-	"github.com/vtdthang/goapi/routers"
+	userController "github.com/vtdthang/goapi/user/controller"
+	userRepo "github.com/vtdthang/goapi/user/repository"
+	userService "github.com/vtdthang/goapi/user/service"
 )
 
 func main() {
@@ -24,6 +27,20 @@ func main() {
 		fmt.Println("Cannot connect to Postgres!")
 	}
 
-	router := routers.InitRoutes()
+	db.SetConnMaxLifetime(500)
+	db.SetMaxIdleConns(50)
+	db.SetMaxOpenConns(10)
+	db.Stats()
+
+	defer db.Close()
+
+	router := httprouter.New()
+
+	userRepo := userRepo.NewUserRepository(db)
+	userService := userService.NewUserService(userRepo)
+	userController := userController.NewUserController(userService)
+
+	router.GET("/api/users/test", userController.FindByEmail)
+	//router := routers.InitRoutes()
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
