@@ -19,7 +19,7 @@ func (e *HTTPError) Error() string {
 }
 
 // NewHTTPError create an instance of HttpError
-func NewHTTPError(statusCode int, errorCode enums.ErrorCode, errorMessage enums.ErrorMessage) error {
+func NewHTTPError(statusCode int, errorCode enums.ErrorCode, errorMessage enums.ErrorMessage) *HTTPError {
 	return &HTTPError{
 		StatusCode:   statusCode,
 		ErrorCode:    errorCode,

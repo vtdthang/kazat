@@ -40,7 +40,7 @@ func main() {
 	userService := userService.NewUserService(userRepo)
 	userController := userController.NewUserController(userService)
 
-	router.GET("/api/users/test", userController.FindByEmail)
+	router.POST("/api/users/test", userController.Register)
 	//router := routers.InitRoutes()
 	log.Fatal(http.ListenAndServe(":8081", router))
 }

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/vtdthang/goapi/entities"
@@ -32,9 +31,12 @@ func (db *pgDB) FindByEmail(email string) (*entities.User, error) {
 	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email)
 
 	if err != nil {
-		err := httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
+		if err != sql.ErrNoRows {
+			err := httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
+			return nil, err
+		}
 
-		fmt.Println("REPO ", err)
+		err := httperror.NewHTTPError(http.StatusNotFound, enums.UserNotFoundErrCode, enums.UserNotFoundErrMsg)
 		return nil, err
 	}
 
