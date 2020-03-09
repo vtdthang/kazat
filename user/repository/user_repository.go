@@ -12,6 +12,7 @@ import (
 // IUserRepository represent user contract
 type IUserRepository interface {
 	FindByEmail(email string) (*entities.User, error)
+	InsertOne(userEntity entities.User) error
 }
 
 type pgDB struct {
@@ -36,9 +37,24 @@ func (db *pgDB) FindByEmail(email string) (*entities.User, error) {
 			return nil, err
 		}
 
-		err := httperror.NewHTTPError(http.StatusNotFound, enums.UserNotFoundErrCode, enums.UserNotFoundErrMsg)
-		return nil, err
+		//err := httperror.NewHTTPError(http.StatusNotFound, enums.UserNotFoundErrCode, enums.UserNotFoundErrMsg)
+		return nil, nil
 	}
 
 	return &user, nil
+}
+
+// InsertOne insert new user
+func (db *pgDB) InsertOne(userEntity entities.User) error {
+	sqlStatement := `
+	INSERT INTO users (id, email, first_name, last_name)
+	VALUES ($1, $2, $3, $4)`
+	_, err := db.DBCon.Exec(sqlStatement, userEntity.ID, userEntity.Email, userEntity.FirstName, userEntity.LastName)
+
+	if err != nil {
+		err = httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
+		return err
+	}
+
+	return nil
 }

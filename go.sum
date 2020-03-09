@@ -66,6 +66,8 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/rogpeppe/go-internal v1.1.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.2.2/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
+github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
+github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/simagix/gox v0.0.0-20200126005658-91ad21a3961a h1:2DohoFlyFWWT8srDuqXaJ9T8QbKiWs64RsJB5tXwjIc=
 github.com/simagix/gox v0.0.0-20200126005658-91ad21a3961a/go.mod h1:h/LOTr1S9nctgfI4ofHnVj/U8qW9IPslxoTFG0sa2mg=
 github.com/simagix/keyhole v1.5.4 h1:EiQL1UO1Yy1DOpWQ32cfGcYWDI/NSMcrRSyRIg/4GK0=

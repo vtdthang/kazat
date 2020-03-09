@@ -35,7 +35,7 @@ func (u *UserController) FindByEmail(w http.ResponseWriter, req *http.Request, _
 	}
 }
 
-// Register use to create new an account
+// Register to use create new account
 func (u *UserController) Register(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
 	decoder := json.NewDecoder(req.Body)
 
@@ -44,8 +44,12 @@ func (u *UserController) Register(w http.ResponseWriter, req *http.Request, _ ht
 	err := decoder.Decode(&registerReqModel)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
+
+	userRegisterResponse, err := u.UserService.Register(registerReqModel)
+
+	fmt.Println(userRegisterResponse)
 
 	userID := "1"
 

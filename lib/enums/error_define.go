@@ -18,5 +18,6 @@ type ErrorMessage string
 const (
 	UserNotFoundErrMsg       ErrorMessage = "User not found"
 	EmailAlreadyExistsErrMsg ErrorMessage = "Email already exists"
-	ServerErrMsg             ErrorMessage = "Server is not responding..."
+
+	ServerErrMsg ErrorMessage = "Server is not responding..."
 )
