@@ -7,6 +7,7 @@ import (
 	"github.com/rs/xid"
 	"github.com/vtdthang/goapi/entities"
 	"github.com/vtdthang/goapi/lib/auth"
+	"github.com/vtdthang/goapi/lib/constants"
 	"github.com/vtdthang/goapi/lib/enums"
 	httperror "github.com/vtdthang/goapi/lib/errors"
 	"github.com/vtdthang/goapi/models"
@@ -16,7 +17,8 @@ import (
 // IUserService represent the user usecases
 type IUserService interface {
 	FindByEmail(email string) (*entities.User, error)
-	Register(registerRequest models.UserRegisterRequest) (*entities.User, error)
+	Login(userRequest models.UserLoginRequest) (*models.UserRegisterResponse, error)
+	Register(registerRequest models.UserRegisterRequest) (*models.UserRegisterResponse, error)
 }
 
 type userService struct {
@@ -37,7 +39,16 @@ func (u *userService) FindByEmail(email string) (*entities.User, error) {
 	return res, nil
 }
 
-func (u *userService) Register(registerRequest models.UserRegisterRequest) (*entities.User, error) {
+func (u *userService) Login(userLoginRequest models.UserLoginRequest) (*models.UserRegisterResponse, error) {
+	res, err := u.userRepo.FindByEmail(userLoginRequest.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+func (u *userService) Register(registerRequest models.UserRegisterRequest) (*models.UserRegisterResponse, error) {
 	existingUser, err := u.userRepo.FindByEmail(registerRequest.Email)
 
 	if err != nil {
@@ -65,8 +76,25 @@ func (u *userService) Register(registerRequest models.UserRegisterRequest) (*ent
 		Email:     registerRequest.Email,
 	}
 
-	fmt.Println(newUser.ID)
-	fmt.Println(accessToken)
+	err = u.userRepo.InsertOne(*newUser)
+	if err != nil {
+		return nil, err
+	}
 
-	return newUser, nil
+	registerUserResponse := &models.UserRegisterResponse{
+		AccessToken:  accessToken,
+		TokenType:    constants.SystemJWTTokenType,
+		ExpiresIn:    constants.SystemJWTExpiresIn,
+		RefreshToken: "",
+		UserProfile: models.UserProfileResponse{
+			ID:        userID,
+			FirstName: registerRequest.FirstName,
+			LastName:  registerRequest.LastName,
+			Email:     registerRequest.Email,
+		},
+	}
+
+	fmt.Println(registerUserResponse)
+
+	return registerUserResponse, nil
 }

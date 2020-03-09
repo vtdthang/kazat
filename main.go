@@ -24,6 +24,7 @@ func main() {
 	pgConnectionString := os.Getenv("PG_LOCAL_URL")
 	db, err := pgdb.NewDB(pgConnectionString)
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("Cannot connect to Postgres!")
 	}
 
@@ -40,7 +41,9 @@ func main() {
 	userService := userService.NewUserService(userRepo)
 	userController := userController.NewUserController(userService)
 
-	router.POST("/api/users/test", userController.Register)
+	router.POST("/api/users/register", userController.Register)
+	router.POST("/api/users/login", userController.Login)
 	//router := routers.InitRoutes()
+
 	log.Fatal(http.ListenAndServe(":8081", router))
 }
