@@ -10,6 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 	pgdb "github.com/vtdthang/goapi/drivers/pg"
+	"github.com/vtdthang/goapi/middlewares"
 	userController "github.com/vtdthang/goapi/user/controller"
 	userRepo "github.com/vtdthang/goapi/user/repository"
 	userService "github.com/vtdthang/goapi/user/service"
@@ -43,6 +44,7 @@ func main() {
 
 	router.POST("/api/users/register", userController.Register)
 	router.POST("/api/users/login", userController.Login)
+	router.GET("/api/users/secured", middlewares.AuthorizeMiddleware(userController.Secured))
 	//router := routers.InitRoutes()
 
 	log.Fatal(http.ListenAndServe(":8081", router))

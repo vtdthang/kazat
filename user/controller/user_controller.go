@@ -68,3 +68,14 @@ func (u *UserController) Login(w http.ResponseWriter, req *http.Request, _ httpr
 		apiresponse.AsSuccessResponse(w, userLoginResponse)
 	}
 }
+
+// Secured api
+func (u *UserController) Secured(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
+	defer helpers.TimeTrack(time.Now(), "LoginController")
+
+	test := map[string]string{
+		"data": "OK",
+	}
+
+	apiresponse.AsSuccessResponse(w, test)
+}

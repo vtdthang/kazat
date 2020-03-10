@@ -15,7 +15,7 @@ func GenerateJwtToken(userID string) (string, error) {
 
 	claims := jwt.MapClaims{}
 	claims["user_id"] = userID
-	claims["exp"] = time.Now().Add(time.Hour * 1).Unix() //Token expires after 1 hour
+	claims["exp"] = time.Now().Add(time.Minute * 1).Unix() //Token expires after 1 hour
 	claims["iss"] = "developer.kazat.com"
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
