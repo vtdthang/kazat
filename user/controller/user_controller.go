@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/vtdthang/goapi/lib/helpers"
 	apiresponse "github.com/vtdthang/goapi/lib/infrastructure"
 	"github.com/vtdthang/goapi/models"
 	"github.com/vtdthang/goapi/user/service"
@@ -31,6 +33,7 @@ func (u *UserController) Register(w http.ResponseWriter, req *http.Request, _ ht
 
 	if err != nil {
 		fmt.Println(err)
+		apiresponse.AsErrorResponse(w, err)
 	}
 
 	userRegisterResponse, err := u.UserService.Register(registerReqModel)
@@ -44,6 +47,8 @@ func (u *UserController) Register(w http.ResponseWriter, req *http.Request, _ ht
 
 // Login api
 func (u *UserController) Login(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+	defer helpers.TimeTrack(time.Now(), "LoginController")
+
 	decoder := json.NewDecoder(req.Body)
 
 	var loginReqModel models.UserLoginRequest
@@ -55,7 +60,7 @@ func (u *UserController) Login(w http.ResponseWriter, req *http.Request, _ httpr
 		apiresponse.AsErrorResponse(w, err)
 	}
 
-	userLoginResponse, err := u.UserService.Register(registerReqModel)
+	userLoginResponse, err := u.UserService.Login(loginReqModel)
 
 	if err != nil {
 		apiresponse.AsErrorResponse(w, err)

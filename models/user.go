@@ -5,6 +5,7 @@ type UserRegisterRequest struct {
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
+	Password  string `json:"password"`
 }
 
 // UserLoginRequest request
@@ -21,8 +22,8 @@ type UserProfileResponse struct {
 	LastName  string `json:"last_name"`
 }
 
-// UserRegisterResponse user register response
-type UserRegisterResponse struct {
+// UserLoginOrRegisterResponse user register response
+type UserLoginOrRegisterResponse struct {
 	AccessToken  string              `json:"access_token"`
 	RefreshToken string              `json:"refresh_token"`
 	TokenType    string              `json:"token_type"`

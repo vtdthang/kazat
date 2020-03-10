@@ -2,11 +2,14 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/vtdthang/goapi/entities"
 	"github.com/vtdthang/goapi/lib/enums"
 	httperror "github.com/vtdthang/goapi/lib/errors"
+	"github.com/vtdthang/goapi/lib/helpers"
 )
 
 // IUserRepository represent user contract
@@ -26,12 +29,24 @@ func NewUserRepository(db *sql.DB) IUserRepository {
 
 // FindByEmail find a user by email
 func (db *pgDB) FindByEmail(email string) (*entities.User, error) {
-	sqlStatement := `SELECT * FROM users WHERE email=$1;`
-	var user entities.User
+	defer helpers.TimeTrack(time.Now(), "FindByEmailRepository")
+
+	sqlStatement := `
+		SELECT id, first_name, last_name, email, password 
+		FROM users 
+		WHERE email=$1;
+	`
+	var pID string
+	var pFirstName string
+	var pLastName string
+	var pEmail string
+	var pPassword sql.NullString
+
 	row := db.DBCon.QueryRow(sqlStatement, email)
-	err := row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email)
+	err := row.Scan(&pID, &pFirstName, &pLastName, &pEmail, &pPassword)
 
 	if err != nil {
+		fmt.Println("FindByEmail ", err)
 		if err != sql.ErrNoRows {
 			err := httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
 			return nil, err
@@ -41,15 +56,23 @@ func (db *pgDB) FindByEmail(email string) (*entities.User, error) {
 		return nil, nil
 	}
 
-	return &user, nil
+	userEntity := &entities.User{
+		ID:        pID,
+		FirstName: pFirstName,
+		LastName:  pLastName,
+		Email:     pEmail,
+		Password:  pPassword.String,
+	}
+
+	return userEntity, nil
 }
 
 // InsertOne insert new user
 func (db *pgDB) InsertOne(userEntity entities.User) error {
 	sqlStatement := `
-	INSERT INTO users (id, email, first_name, last_name)
-	VALUES ($1, $2, $3, $4)`
-	_, err := db.DBCon.Exec(sqlStatement, userEntity.ID, userEntity.Email, userEntity.FirstName, userEntity.LastName)
+	INSERT INTO users (id, email, first_name, last_name, password)
+	VALUES ($1, $2, $3, $4, $5)`
+	_, err := db.DBCon.Exec(sqlStatement, userEntity.ID, userEntity.Email, userEntity.FirstName, userEntity.LastName, userEntity.Password)
 
 	if err != nil {
 		err = httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
