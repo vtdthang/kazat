@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/vtdthang/goapi/entities"
 	"github.com/vtdthang/goapi/lib/constants"
@@ -62,11 +63,31 @@ func (u *userService) Login(userLoginRequest models.UserLoginRequest) (*models.U
 		return nil, err
 	}
 
+	refresToken, err := helpers.GenerateRandomString(32)
+	if err != nil {
+		fmt.Println("Generate ramdom byte is fail")
+		return nil, err
+	}
+
+	newAuthenticationData := entities.Auth{
+		ID:           models.NewID(),
+		UserID:       existingUserEntity.ID,
+		RefreshToken: refresToken,
+		ExpiresAt:    models.GetMillisecondsForSpecificTime(time.Now().AddDate(0, 0, 60)),
+		CreatedAt:    models.GetMilliseconds(),
+		UpdatedAt:    models.GetMilliseconds(),
+	}
+
+	err = u.userRepo.InsertOneAuthData(newAuthenticationData)
+	if err != nil {
+		return nil, err
+	}
+
 	loginUserResponse := &models.UserLoginOrRegisterResponse{
 		AccessToken:  accessToken,
 		TokenType:    constants.SystemJWTTokenType,
 		ExpiresIn:    constants.SystemJWTExpiresIn,
-		RefreshToken: "",
+		RefreshToken: refresToken,
 		UserProfile: models.UserProfileResponse{
 			ID:        existingUserEntity.ID,
 			FirstName: existingUserEntity.FirstName,
@@ -99,11 +120,13 @@ func (u *userService) Register(registerRequest models.UserRegisterRequest) (*mod
 		return nil, err
 	}
 
-	newUser := &entities.User{
+	newUser := entities.User{
 		ID:        userID,
 		FirstName: registerRequest.FirstName,
 		LastName:  registerRequest.LastName,
 		Email:     strings.ToLower(registerRequest.Email),
+		CreatedAt: models.GetMilliseconds(),
+		UpdatedAt: models.GetMilliseconds(),
 	}
 
 	hashedPassword, err := helpers.HashPassword([]byte(registerRequest.Password))
@@ -114,7 +137,21 @@ func (u *userService) Register(registerRequest models.UserRegisterRequest) (*mod
 
 	newUser.Password = hashedPassword
 
-	err = u.userRepo.InsertOne(*newUser)
+	refresToken, err := helpers.GenerateRandomString(32)
+	if err != nil {
+		fmt.Println("Generate refresh token failed")
+	}
+
+	newAuthenticationData := entities.Auth{
+		ID:           models.NewID(),
+		UserID:       userID,
+		RefreshToken: refresToken,
+		ExpiresAt:    models.GetMillisecondsForSpecificTime(time.Now().AddDate(0, 0, 60)),
+		CreatedAt:    models.GetMilliseconds(),
+		UpdatedAt:    models.GetMilliseconds(),
+	}
+
+	err = u.userRepo.CreateUserAndAuthData(newUser, newAuthenticationData)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +160,7 @@ func (u *userService) Register(registerRequest models.UserRegisterRequest) (*mod
 		AccessToken:  accessToken,
 		TokenType:    constants.SystemJWTTokenType,
 		ExpiresIn:    constants.SystemJWTExpiresIn,
-		RefreshToken: "",
+		RefreshToken: refresToken,
 		UserProfile: models.UserProfileResponse{
 			ID:        userID,
 			FirstName: registerRequest.FirstName,

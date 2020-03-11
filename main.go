@@ -20,6 +20,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
+		fmt.Println(err)
 		panic("Error loading env file")
 	}
 

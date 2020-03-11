@@ -26,7 +26,7 @@ func NewID() string {
 
 //NewRandomString is method to generate secured random string
 func NewRandomString(length int) string {
-	var encoding = base32.NewEncoding("qaz12wsx3edc4rfv5tgb6yhn7ujm8ik9olp")
+	var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h76")
 	var b bytes.Buffer
 	str := make([]byte, length+8)
 	rand.Read(str)
@@ -37,6 +37,7 @@ func NewRandomString(length int) string {
 	return b.String()
 }
 
+//ConvertFromMilliseconds is function to convert millisenconds time
 func ConvertFromMilliseconds(ms int64) time.Time {
 	return time.Unix(0, ms*int64(time.Millisecond))
 }

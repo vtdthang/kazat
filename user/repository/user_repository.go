@@ -17,6 +17,7 @@ type IUserRepository interface {
 	FindByEmail(email string) (*entities.User, error)
 	InsertOne(userEntity entities.User) error
 	CreateUserAndAuthData(userEntity entities.User, authEntity entities.Auth) error
+	InsertOneAuthData(authEntity entities.Auth) error
 }
 
 type pgDB struct {
@@ -26,6 +27,22 @@ type pgDB struct {
 //NewUserRepository will create an object which represent for IUserRepository
 func NewUserRepository(db *sql.DB) IUserRepository {
 	return &pgDB{DBCon: db}
+}
+
+func (db *pgDB) InsertOneAuthData(authEntity entities.Auth) error {
+	sqlStatement := `
+	INSERT INTO auths (id, user_id, refresh_token, expires_at, created_at, updated_at)
+	VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := db.DBCon.Exec(sqlStatement,
+		authEntity.ID, authEntity.UserID, authEntity.RefreshToken, authEntity.ExpiresAt, authEntity.CreatedAt, authEntity.UpdatedAt)
+
+	if err != nil {
+		fmt.Println(err)
+		err = httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
+		return err
+	}
+
+	return nil
 }
 
 // FindByEmail find a user by email
@@ -84,36 +101,37 @@ func (db *pgDB) InsertOne(userEntity entities.User) error {
 }
 
 func (db *pgDB) CreateUserAndAuthData(userEntity entities.User, authEntity entities.Auth) error {
+	defer helpers.TimeTrack(time.Now(), "CreateUserAndAuthData")
 	tx, err := db.DBCon.Begin()
 	if err != nil {
 		return err
 	}
 
 	{
-		stmt, err := tx.Prepare(`INSERT INTO users (id, email, first_name, last_name, password)
-		VALUES ($1, $2, $3, $4, $5);`)
+		stmt, err := tx.Prepare(`INSERT INTO users (id, email, first_name, last_name, password, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7);`)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 		defer stmt.Close()
 
-		if _, err := stmt.Exec(userEntity.ID, userEntity.Email, userEntity.FirstName, userEntity.LastName, userEntity.Password); err != nil {
+		if _, err := stmt.Exec(userEntity.ID, userEntity.Email, userEntity.FirstName, userEntity.LastName, userEntity.Password, userEntity.CreatedAt, userEntity.UpdatedAt); err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
 	{
-		stmt, err := tx.Prepare(`INSERT INTO auths (id, user_id, refresh_token, expires_at)
-                     VALUES($1, $2, $3, $4);`)
+		stmt, err := tx.Prepare(`INSERT INTO auths (id, user_id, refresh_token, expires_at, created_at, updated_at)
+                     VALUES($1, $2, $3, $4, $5, $6);`)
 		if err != nil {
 			tx.Rollback()
 			return err
 		}
 		defer stmt.Close()
 
-		if _, err := stmt.Exec(authEntity.ID, authEntity.UserID, authEntity.RefreshToken, authEntity.ExpiresAt); err != nil {
+		if _, err := stmt.Exec(authEntity.ID, authEntity.UserID, authEntity.RefreshToken, authEntity.ExpiresAt, authEntity.CreatedAt, authEntity.UpdatedAt); err != nil {
 			tx.Rollback()
 			return err
 		}
