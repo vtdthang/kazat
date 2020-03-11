@@ -16,6 +16,7 @@ import (
 type IUserRepository interface {
 	FindByEmail(email string) (*entities.User, error)
 	InsertOne(userEntity entities.User) error
+	CreateUserAndAuthData(userEntity entities.User, authEntity entities.Auth) error
 }
 
 type pgDB struct {
@@ -80,4 +81,43 @@ func (db *pgDB) InsertOne(userEntity entities.User) error {
 	}
 
 	return nil
+}
+
+func (db *pgDB) CreateUserAndAuthData(userEntity entities.User, authEntity entities.Auth) error {
+	tx, err := db.DBCon.Begin()
+	if err != nil {
+		return err
+	}
+
+	{
+		stmt, err := tx.Prepare(`INSERT INTO users (id, email, first_name, last_name, password)
+		VALUES ($1, $2, $3, $4, $5);`)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		defer stmt.Close()
+
+		if _, err := stmt.Exec(userEntity.ID, userEntity.Email, userEntity.FirstName, userEntity.LastName, userEntity.Password); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	{
+		stmt, err := tx.Prepare(`INSERT INTO auths (id, user_id, refresh_token, expires_at)
+                     VALUES($1, $2, $3, $4);`)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+		defer stmt.Close()
+
+		if _, err := stmt.Exec(authEntity.ID, authEntity.UserID, authEntity.RefreshToken, authEntity.ExpiresAt); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/rs/xid"
 	"github.com/vtdthang/goapi/entities"
-	"github.com/vtdthang/goapi/lib/auth"
 	"github.com/vtdthang/goapi/lib/constants"
 	"github.com/vtdthang/goapi/lib/enums"
 	httperror "github.com/vtdthang/goapi/lib/errors"
@@ -58,7 +56,7 @@ func (u *userService) Login(userLoginRequest models.UserLoginRequest) (*models.U
 		return nil, err
 	}
 
-	accessToken, err := auth.GenerateJwtToken(existingUserEntity.ID)
+	accessToken, err := helpers.GenerateJwtToken(existingUserEntity.ID)
 	if err != nil {
 		err := httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
 		return nil, err
@@ -94,8 +92,8 @@ func (u *userService) Register(registerRequest models.UserRegisterRequest) (*mod
 		return nil, err
 	}
 
-	userID := xid.New().String()
-	accessToken, err := auth.GenerateJwtToken(userID)
+	userID := models.NewID()
+	accessToken, err := helpers.GenerateJwtToken(userID)
 	if err != nil {
 		err := httperror.NewHTTPError(http.StatusInternalServerError, enums.ServerErrCode, enums.ServerErrMsg)
 		return nil, err

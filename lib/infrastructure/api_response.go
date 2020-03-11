@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	httpHeaderConstants "github.com/vtdthang/goapi/lib/constants/httpheader"
-	mimeTypeConstants "github.com/vtdthang/goapi/lib/constants/mimetype"
+	"github.com/vtdthang/goapi/lib/constants"
 	"github.com/vtdthang/goapi/lib/enums"
 	httperror "github.com/vtdthang/goapi/lib/errors"
 )
 
 // AsSuccessResponse return a success response
 func AsSuccessResponse(w http.ResponseWriter, body interface{}) {
-	w.Header().Set(httpHeaderConstants.ContentType, mimeTypeConstants.ApplicationJSON)
+	w.Header().Set(constants.HTTPHeaderContentType, constants.MIMEApplicationJSON)
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(body)
@@ -22,12 +21,12 @@ func AsSuccessResponse(w http.ResponseWriter, body interface{}) {
 func AsErrorResponse(w http.ResponseWriter, err error) {
 	switch errType := err.(type) {
 	case *httperror.HTTPError:
-		w.Header().Set(httpHeaderConstants.ContentType, mimeTypeConstants.ApplicationJSON)
+		w.Header().Set(constants.HTTPHeaderContentType, constants.MIMEApplicationJSON)
 		w.WriteHeader(errType.StatusCode)
 
 		json.NewEncoder(w).Encode(err)
 	default:
-		w.Header().Set(httpHeaderConstants.ContentType, mimeTypeConstants.ApplicationJSON)
+		w.Header().Set(constants.HTTPHeaderContentType, constants.MIMEApplicationJSON)
 		w.WriteHeader(http.StatusInternalServerError)
 
 		body := map[string]interface{}{

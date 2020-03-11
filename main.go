@@ -10,6 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/lib/pq"
 	pgdb "github.com/vtdthang/goapi/drivers/pg"
+	"github.com/vtdthang/goapi/lib/constants"
 	"github.com/vtdthang/goapi/middlewares"
 	userController "github.com/vtdthang/goapi/user/controller"
 	userRepo "github.com/vtdthang/goapi/user/repository"
@@ -19,11 +20,10 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading env file")
+		panic("Error loading env file")
 	}
 
-	pgConnectionString := os.Getenv("PG_LOCAL_URL")
-	db, err := pgdb.NewDB(pgConnectionString)
+	db, err := pgdb.NewDB(os.Getenv(constants.EnvPostgresURL))
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("Cannot connect to Postgres!")

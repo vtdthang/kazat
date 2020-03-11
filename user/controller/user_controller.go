@@ -73,6 +73,13 @@ func (u *UserController) Login(w http.ResponseWriter, req *http.Request, _ httpr
 func (u *UserController) Secured(w http.ResponseWriter, req *http.Request, ps httprouter.Params) {
 	defer helpers.TimeTrack(time.Now(), "LoginController")
 
+	testID, ok := req.Context().Value(models.ContextKeyUserID).(string)
+	if !ok {
+		fmt.Println("TOKEN ERROR")
+	}
+
+	fmt.Println("USERID ", testID)
+
 	test := map[string]string{
 		"data": "OK",
 	}

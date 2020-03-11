@@ -9,5 +9,5 @@ require (
 	github.com/lib/pq v1.3.0
 	github.com/rs/xid v1.2.1
 	go.mongodb.org/mongo-driver v1.3.0
-	golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 )

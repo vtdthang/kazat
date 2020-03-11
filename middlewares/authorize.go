@@ -1,8 +1,10 @@
 package middlewares
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -10,10 +12,15 @@ import (
 	"github.com/vtdthang/goapi/lib/enums"
 	httperror "github.com/vtdthang/goapi/lib/errors"
 	apiresponse "github.com/vtdthang/goapi/lib/infrastructure"
+	"github.com/vtdthang/goapi/models"
 )
 
-const secretKey = "ABCD123@"
 const authorizationHeader = "Authorization"
+
+type decodedJWTToken struct {
+	DeviceID string `json:"device_id"`
+	jwt.StandardClaims
+}
 
 // AuthorizeMiddleware secure api endpoints
 func AuthorizeMiddleware(next httprouter.Handle) httprouter.Handle {
@@ -22,7 +29,8 @@ func AuthorizeMiddleware(next httprouter.Handle) httprouter.Handle {
 		if authorizationHeader != "" {
 			bearerToken := strings.Split(authorizationHeader, " ")
 			if len(bearerToken) == 2 {
-				token, err := parseBearerToken(bearerToken[1])
+				decodedToken := &decodedJWTToken{}
+				token, err := parseTokenWithClaim(bearerToken[1], decodedToken)
 
 				if err != nil {
 					v, _ := err.(*jwt.ValidationError)
@@ -37,14 +45,17 @@ func AuthorizeMiddleware(next httprouter.Handle) httprouter.Handle {
 					return
 				}
 
-				if token.Valid {
-					//context.Set(req, "decoded", token.Claims)
-
-					claims := token.Claims
-					fmt.Println("CLAIMS ", claims)
-					next(w, req, ps)
+				if !token.Valid {
+					err := httperror.NewHTTPError(http.StatusForbidden, enums.TokenIsMalformedOrInvalidErrCode, enums.TokenIsMalformedOrInvalidErrMsg)
+					apiresponse.AsErrorResponse(w, err)
 					return
 				}
+
+				ctx := context.WithValue(req.Context(), models.ContextKeyUserID, decodedToken.Subject)
+				req = req.WithContext(ctx)
+
+				next(w, req, ps)
+				return
 			}
 
 			err := httperror.NewHTTPError(http.StatusForbidden, enums.AuthorizationHeaderIsRequiredErrCode, enums.AuthorizationHeaderIsRequiredErrCMsg)
@@ -63,11 +74,12 @@ func parseBearerToken(bearerToken string) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("There was an error")
 		}
-		return []byte(secretKey), nil
+		return []byte(os.Getenv(models.EnvJWTSecretKey)), nil
 	})
 }
 
-// Exception blah blah blah
-type Exception struct {
-	Message string `json:"message"`
+func parseTokenWithClaim(bearerToken string, claims *decodedJWTToken) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(bearerToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv(models.EnvJWTSecretKey)), nil
+	})
 }
