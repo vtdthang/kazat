@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +19,10 @@ import (
 )
 
 func main() {
+	// TEST HTML Template /////////////
+	tmpl := template.Must(template.ParseFiles("layout.html"))
+	////// END Test Html Template
+
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println(err)
@@ -43,10 +48,19 @@ func main() {
 	userService := userService.NewUserService(userRepo)
 	userController := userController.NewUserController(userService)
 
+	router.GET("/", func(w http.ResponseWriter, req *http.Request, _ httprouter.Params) {
+		data := testWelcome{TextWelcome: "Welcome to Go REST API"}
+		tmpl.Execute(w, data)
+	})
+
 	router.POST("/api/users/register", userController.Register)
 	router.POST("/api/users/login", userController.Login)
 	router.GET("/api/users/secured", middlewares.AuthorizeMiddleware(userController.Secured))
 	//router := routers.InitRoutes()
 
 	log.Fatal(http.ListenAndServe(":8081", router))
+}
+
+type testWelcome struct {
+	TextWelcome string
 }
